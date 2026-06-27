@@ -878,6 +878,10 @@
         <input type="text" id="title" placeholder="Late Night Study">
       </div>
     </div>
+    <div class="form-group">
+      <label>Lyrics <span style="color:var(--muted);font-size:9px">now required by server · use [Verse]/[Chorus] format</span></label>
+      <textarea id="generateLyrics" placeholder="[Verse]&#10;在那遥远的地方&#10;[Chorus]&#10;爱你爱到地老天荒&#10;[End]"></textarea>
+    </div>
     <label class="toggle-row" for="instrumental">
       <input type="checkbox" id="instrumental">
       <span class="toggle-track"></span>
@@ -1988,7 +1992,8 @@
     setLoading('submitBtn', true, 'GENERATING…', 'GENERATE MUSIC');
     setStatus('Submitting task…');
     try {
-      const body = { prompt, provider: 'default', ...(style && {style}), ...(title && {title}), ...(instrumental && {instrumental:true}) };
+      const lyrics = document.getElementById('generateLyrics').value.trim();
+      const body = { prompt, provider: 'default', ...(lyrics && {lyrics}), ...(style && {style}), ...(title && {title}), ...(instrumental && {instrumental:true}) };
       const result = await apiPost('/v1/music/generate', body);
       setTaskId(result.taskId);
       setStatus('Task submitted. Generating music…');
