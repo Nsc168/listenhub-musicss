@@ -857,11 +857,13 @@
     <button class="tab-btn" onclick="switchTab('cover')">COVER</button>
     <button class="tab-btn" onclick="switchTab('extend')">EXTEND</button>
     <button class="tab-btn" onclick="switchTab('lyrics')">LYRICS</button>
+    <button class="tab-btn" onclick="switchTab('music2')">MUSIC+</button>
     <button class="tab-btn" onclick="switchTab('history')">HISTORY</button>
   </div>
 
   <!-- Generate Panel -->
   <div class="tab-panel active" id="panel-generate">
+    <div style="background:#ff4d6d;color:#fff;padding:12px 16px;margin-bottom:16px;font-size:12px;letter-spacing:0.05em"><strong>⚠ DEPRECATED</strong> — Suno provider is no longer maintained. Use <strong>MUSIC+</strong> tab instead (Mureka model).</div>
     <div class="form-group">
       <label>Prompt *</label>
       <textarea id="prompt" placeholder="Upbeat lo-fi hip hop with jazzy piano chords and warm vinyl crackle…"></textarea>
@@ -886,6 +888,7 @@
 
   <!-- Cover Panel -->
   <div class="tab-panel" id="panel-cover">
+    <div style="background:#ff4d6d;color:#fff;padding:12px 16px;margin-bottom:16px;font-size:12px;letter-spacing:0.05em"><strong>⚠ DEPRECATED</strong> — Suno provider is no longer maintained. Use <strong>MUSIC+ → REMIX</strong> instead (Mureka model).</div>
     <div class="form-group">
       <label>Reference Audio *</label>
       <div class="drop-zone" id="dropZone">
@@ -983,6 +986,87 @@
     <div id="lyricsResults" style="margin-top:24px"></div>
   </div>
 
+  <!-- Music+ Panel -->
+  <div class="tab-panel" id="panel-music2">
+    <div class="form-group">
+      <label>API Key <span style="color:var(--accent);font-size:9px">lh_sk_... (no OAuth needed)</span></label>
+      <div class="manual-row" style="margin-bottom:0">
+        <input type="text" id="music2ApiKey" placeholder="lh_sk_..." autocomplete="off">
+        <button onclick="saveMusic2ApiKey()">SET</button>
+      </div>
+      <div id="music2ApiKeyStatus" style="font-size:10px;color:var(--muted);margin-top:6px"></div>
+    </div>
+    <div class="tabs" style="margin-bottom:20px">
+      <button class="tab-btn active" id="m2tab-generate" onclick="switchMusic2Tab('generate')">GENERATE</button>
+      <button class="tab-btn" id="m2tab-remix" onclick="switchMusic2Tab('remix')">REMIX</button>
+      <button class="tab-btn" id="m2tab-instrumental" onclick="switchMusic2Tab('instrumental')">INSTR</button>
+      <button class="tab-btn" id="m2tab-soundtrack" onclick="switchMusic2Tab('soundtrack')">SNDTRK</button>
+      <button class="tab-btn" id="m2tab-track" onclick="switchMusic2Tab('track')">TRACK</button>
+      <button class="tab-btn" id="m2tab-tools" onclick="switchMusic2Tab('tools')">TOOLS</button>
+    </div>
+
+    <div id="m2panel-generate">
+      <div class="form-group"><label>Prompt</label><textarea id="m2prompt" placeholder="Upbeat Mandarin pop with piano and strings…"></textarea></div>
+      <div class="form-group"><label>Lyrics <span style="color:var(--muted);font-size:9px">optional</span></label><textarea id="m2lyrics" placeholder="[Verse]&#10;你好世界…"></textarea></div>
+      <div class="row">
+        <div class="form-group"><label>Model</label><select id="m2model" style="width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:DM Mono,monospace;font-size:12px;padding:12px 14px;outline:none"><option value="">auto</option><option value="mureka-7.6">mureka-7.6</option><option value="mureka-8">mureka-8</option><option value="mureka-9">mureka-9</option><option value="mureka-o2">mureka-o2</option></select></div>
+        <div class="form-group"><label>Style</label><input type="text" id="m2style" placeholder="pop, jazz…"></div>
+      </div>
+      <div class="row">
+        <div class="form-group"><label>Title</label><input type="text" id="m2title" placeholder="My Song"></div>
+        <div class="form-group"><label>Vocal ID</label><input type="text" id="m2vocalId" placeholder="vocal_xxx"></div>
+      </div>
+      <label class="toggle-row" for="m2instrumental"><input type="checkbox" id="m2instrumental"><span class="toggle-track"></span><span class="toggle-label">Instrumental only</span></label>
+      <button class="submit-btn" id="m2generateBtn" onclick="music2Generate()" style="margin-top:16px">GENERATE</button>
+    </div>
+
+    <div id="m2panel-remix" style="display:none">
+      <div class="form-group"><label>Audio File</label><div class="drop-zone" style="padding:16px"><input type="file" id="m2remixFile" accept=".mp3,.m4a,.wav" onchange="onMusic2File('remix',this)"><div class="drop-label"><strong>Tap to select</strong></div></div><div class="file-selected" id="m2remixFileLabel"></div><input type="text" id="m2remixUrl" placeholder="or paste audio URL / providerSongId" style="margin-top:8px;width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:DM Mono,monospace;font-size:12px;padding:12px 14px;outline:none"></div>
+      <div class="form-group"><label>Lyrics *</label><textarea id="m2remixLyrics" placeholder="[Verse]&#10;…"></textarea></div>
+      <div class="form-group"><label>Prompt *</label><input type="text" id="m2remixPrompt" placeholder="Upbeat jazz remix…" style="width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:DM Mono,monospace;font-size:13px;padding:14px 16px;outline:none"></div>
+      <button class="submit-btn" id="m2remixBtn" onclick="music2Remix()" style="margin-top:16px">REMIX</button>
+    </div>
+
+    <div id="m2panel-instrumental" style="display:none">
+      <div class="form-group"><label>Prompt OR Reference Audio</label><input type="text" id="m2instrPrompt" placeholder="Peaceful piano melody…" style="margin-bottom:8px;width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:DM Mono,monospace;font-size:13px;padding:14px 16px;outline:none"><div class="drop-zone" style="padding:16px"><input type="file" id="m2instrFile" accept=".mp3,.m4a" onchange="onMusic2File('instr',this)"><div class="drop-label"><strong>or tap to select audio</strong></div></div><div class="file-selected" id="m2instrFileLabel"></div></div>
+      <div class="form-group"><label>Model</label><select id="m2instrModel" style="width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:DM Mono,monospace;font-size:12px;padding:12px 14px;outline:none"><option value="">auto</option><option value="mureka-7.6">mureka-7.6</option><option value="mureka-8">mureka-8</option><option value="mureka-9">mureka-9</option><option value="mureka-o2">mureka-o2</option></select></div>
+      <button class="submit-btn" id="m2instrBtn" onclick="music2Instrumental()" style="margin-top:16px">GENERATE INSTRUMENTAL</button>
+    </div>
+
+    <div id="m2panel-soundtrack" style="display:none">
+      <div class="form-group"><label>Image OR Video *</label><div class="drop-zone" style="padding:16px"><input type="file" id="m2soundtrackFile" accept="image/*,.mp4,.mov,.avi,.mkv,.webm" onchange="onMusic2File('soundtrack',this)"><div class="drop-label"><strong>Tap to select image or video</strong></div></div><div class="file-selected" id="m2soundtrackFileLabel"></div></div>
+      <div class="form-group"><label>Prompt</label><input type="text" id="m2soundtrackPrompt" placeholder="Cinematic orchestral…" style="width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:DM Mono,monospace;font-size:13px;padding:14px 16px;outline:none"></div>
+      <div class="form-group"><label>Model</label><select id="m2soundtrackModel" style="width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:DM Mono,monospace;font-size:12px;padding:12px 14px;outline:none"><option value="">auto</option><option value="mureka-7.6">mureka-7.6</option><option value="mureka-8">mureka-8</option><option value="mureka-9">mureka-9</option><option value="mureka-o2">mureka-o2</option></select></div>
+      <button class="submit-btn" id="m2soundtrackBtn" onclick="music2Soundtrack()" style="margin-top:16px">GENERATE SOUNDTRACK</button>
+    </div>
+
+    <div id="m2panel-track" style="display:none">
+      <div class="form-group"><label>Reference Audio * <span style="color:var(--muted);font-size:9px">file OR providerSongId</span></label><div class="drop-zone" style="padding:16px"><input type="file" id="m2trackFile" accept=".mp3,.m4a,.wav" onchange="onMusic2File('track',this)"><div class="drop-label"><strong>Tap to select audio</strong></div></div><div class="file-selected" id="m2trackFileLabel"></div><input type="text" id="m2trackSongId" placeholder="or paste providerSongId" style="margin-top:8px;width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:DM Mono,monospace;font-size:12px;padding:12px 14px;outline:none"></div>
+      <div class="form-group"><label>Track Type *</label><select id="m2trackType" style="width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:DM Mono,monospace;font-size:12px;padding:12px 14px;outline:none"><option value="Vocals">Vocals</option><option value="Instrumental">Instrumental</option><option value="Drums">Drums</option><option value="Bass">Bass</option><option value="Guitar">Guitar</option><option value="Keyboard">Keyboard</option><option value="Percussion">Percussion</option><option value="Strings">Strings</option><option value="Synth">Synth</option><option value="FX">FX</option><option value="Brass">Brass</option><option value="Woodwinds">Woodwinds</option></select></div>
+      <div class="form-group"><label>Prompt *</label><input type="text" id="m2trackPrompt" placeholder="Energetic drum pattern with kick and snare…" style="width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:DM Mono,monospace;font-size:13px;padding:14px 16px;outline:none"></div>
+      <div class="form-group"><label>Lyrics <span style="color:var(--muted);font-size:9px">required if Vocals</span></label><textarea id="m2trackLyrics" placeholder="[Verse]&#10;…"></textarea></div>
+      <div class="row">
+        <div class="form-group"><label>Vocal Gender</label><select id="m2trackVocalGender" style="width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:DM Mono,monospace;font-size:12px;padding:12px 14px;outline:none"><option value="">— any —</option><option value="male">Male</option><option value="female">Female</option></select></div>
+        <div class="form-group"><label>Start (sec)</label><input type="number" id="m2trackStart" placeholder="0" min="0" style="width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:DM Mono,monospace;font-size:13px;padding:14px 16px;outline:none"></div>
+      </div>
+      <div class="form-group"><label>End (sec)</label><input type="number" id="m2trackEnd" placeholder="leave empty for full track" min="0" style="width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:DM Mono,monospace;font-size:13px;padding:14px 16px;outline:none"></div>
+      <button class="submit-btn" id="m2trackBtn" onclick="music2Track()" style="margin-top:16px">GENERATE TRACK</button>
+    </div>
+
+    <div id="m2panel-tools" style="display:none">
+      <div class="form-group"><label>Audio File * <span style="color:var(--muted);font-size:9px">mp3/m4a max 10MB</span></label><div class="drop-zone" style="padding:16px"><input type="file" id="m2toolFile" accept=".mp3,.m4a" onchange="onMusic2File('tool',this)"><div class="drop-label"><strong>Tap to select audio</strong></div></div><div class="file-selected" id="m2toolFileLabel"></div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px">
+        <button class="submit-btn" id="m2recognizeBtn" onclick="music2Recognize()" style="font-size:13px;padding:12px">RECOGNIZE</button>
+        <button class="submit-btn" id="m2describeBtn" onclick="music2Describe()" style="font-size:13px;padding:12px">DESCRIBE</button>
+        <button class="submit-btn" id="m2stemBtn" onclick="music2Stem()" style="font-size:13px;padding:12px;background:var(--surface);color:var(--accent);border:1px solid var(--accent)">STEM</button>
+      </div>
+      <div class="form-group"><label>Stem Model</label><select id="m2stemModel" style="width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:DM Mono,monospace;font-size:12px;padding:12px 14px;outline:none"><option value="">auto</option><option value="audio-separation-1">audio-separation-1</option><option value="audio-separation-2">audio-separation-2</option></select></div>
+      <div id="m2toolResults"></div>
+    </div>
+
+    <div id="music2Results" style="margin-top:24px"></div>
+  </div>
+
   <!-- History Panel -->
   <div class="tab-panel" id="panel-history">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
@@ -1035,8 +1119,7 @@
     if (code) {
       // Clean URL immediately
       window.history.replaceState({}, '', window.location.pathname);
-      oauthSessionId = sessionStorage.getItem('lh_session_id') || localStorage.getItem('lh_session_id');
-      localStorage.removeItem('lh_session_id');
+      oauthSessionId = sessionStorage.getItem('lh_session_id');
       if (oauthSessionId) {
         exchangeCode(code);
         return;
@@ -1199,6 +1282,11 @@
     btn.textContent = 'CONNECTING…';
     hideError();
     try {
+      // Use port 9999 — we don't actually run a server,
+      // but the API requires port >= 1024. After login,
+      // ListenHub redirects to http://localhost:9999/?code=XXX
+      // which fails to load (no server), but the user can copy
+      // the code from the URL bar and paste it below.
       const res = await fetch(`${API_BASE}/v1/auth/connect/init`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1208,17 +1296,15 @@
       if (!res.ok || json.code !== 0) throw new Error(json.message || 'Failed to init OAuth');
       const { sessionId, authUrl } = json.data;
 
-      // Use localStorage so sessionId survives navigation (sessionStorage is
-      // cleared when the tab navigates away, which breaks mobile browsers that
-      // don't support window.open).
-      localStorage.setItem('lh_session_id', sessionId);
       sessionStorage.setItem('lh_session_id', sessionId);
       oauthSessionId = sessionId;
 
-      // Navigate current tab to authUrl — works on all browsers including mobile.
-      // After login, ListenHub redirects back to this page with ?code=XXX and
-      // init() will pick it up automatically.
-      window.location.href = authUrl;
+      // Show the waiting/code-entry box
+      document.getElementById('oauthWaiting').classList.add('visible');
+      document.getElementById('loginBox').style.display = 'none';
+
+      // Open login in a new tab so user can come back here easily
+      window.open(authUrl, '_blank');
     } catch (err) {
       showError(`Login error: ${err.message}`);
       btn.disabled = false;
@@ -1271,7 +1357,7 @@
   // --- Tabs ---
   function switchTab(tab) {
     activeTab = tab;
-    const tabNames = ['generate','cover','extend','lyrics','history'];
+    const tabNames = ['generate','cover','extend','lyrics','music2','history'];
     document.querySelectorAll('.tab-btn').forEach((b, i) => {
       b.classList.toggle('active', tabNames[i] === tab);
     });
@@ -1282,6 +1368,7 @@
     hideStatus();
     document.getElementById('results').innerHTML = '';
     if (tab === 'history' && accessToken) loadHistory();
+    if (tab === 'music2') initMusic2Tab();
     // Show proxy bar on cover or extend tab
     const proxyBar = document.getElementById('proxyBar');
     if (proxyBar) {
@@ -1291,6 +1378,283 @@
         if (proxyInput && PROXY_URL) proxyInput.value = PROXY_URL;
       }
     }
+  }
+
+
+  // === MUSIC+ (OpenAPI / lh_sk_) ===
+  var OPENAPI_MUSIC_BASE = 'https://api.marswave.ai/openapi';
+  var music2ApiKey = localStorage.getItem('lh_music2_key') || '';
+  var music2Files = { remix:null, instr:null, soundtrack:null, track:null, tool:null };
+
+  function initMusic2Tab() {
+    var inp = document.getElementById('music2ApiKey');
+    if (music2ApiKey) { inp.value = music2ApiKey; document.getElementById('music2ApiKeyStatus').textContent = '✓ API key set'; }
+  }
+  function saveMusic2ApiKey() {
+    music2ApiKey = document.getElementById('music2ApiKey').value.trim();
+    if (music2ApiKey) { localStorage.setItem('lh_music2_key', music2ApiKey); document.getElementById('music2ApiKeyStatus').textContent = '✓ Saved'; }
+  }
+  function switchMusic2Tab(tab) {
+    ['generate','remix','instrumental','soundtrack','track','tools'].forEach(function(t) {
+      var btn = document.getElementById('m2tab-' + t);
+      var panel = document.getElementById('m2panel-' + t);
+      if (btn) btn.classList.toggle('active', t === tab);
+      if (panel) panel.style.display = t === tab ? 'block' : 'none';
+    });
+    document.getElementById('music2Results').innerHTML = '';
+    if (document.getElementById('m2toolResults')) document.getElementById('m2toolResults').innerHTML = '';
+  }
+  function onMusic2File(type, input) {
+    var file = input.files[0]; if (!file) return;
+    music2Files[type] = file;
+    var map = {remix:'m2remixFileLabel',instr:'m2instrFileLabel',soundtrack:'m2soundtrackFileLabel',track:'m2trackFileLabel',tool:'m2toolFileLabel'};
+    document.getElementById(map[type]).textContent = '\u2713 ' + file.name + ' (' + (file.size/1024/1024).toFixed(2) + ' MB)';
+  }
+  function music2AuthHeaders() {
+    var key = music2ApiKey || localStorage.getItem('lh_music2_key') || '';
+    if (!key) throw new Error('Please set your lh_sk_ API key first.');
+    return {'Authorization': 'Bearer ' + key};
+  }
+  async function music2PostJson(path, body) {
+    var h = music2AuthHeaders(); h['Content-Type'] = 'application/json';
+    var res = await fetch(OPENAPI_MUSIC_BASE + path, {method:'POST', headers:h, body:JSON.stringify(body)});
+    var j = await res.json();
+    if (!res.ok) throw new Error(j.message || j.error || 'HTTP ' + res.status);
+    return j.data || j;
+  }
+  async function music2PostForm(path, form) {
+    var h = music2AuthHeaders();
+    var res = await fetch(OPENAPI_MUSIC_BASE + path, {method:'POST', headers:h, body:form});
+    var j = await res.json();
+    if (!res.ok) throw new Error(j.message || j.error || 'HTTP ' + res.status);
+    return j.data || j;
+  }
+  async function music2Poll(taskId) {
+    var start = Date.now();
+    while (Date.now() - start < 300000) {
+      await new Promise(function(r){setTimeout(r,8000);});
+      var h = music2AuthHeaders();
+      var res = await fetch(OPENAPI_MUSIC_BASE + '/v1/music/tasks/' + taskId, {headers:h});
+      var j = await res.json();
+      if (!res.ok) throw new Error(j.message || 'HTTP ' + res.status);
+      var task = j.data || j;
+      setStatus('Status: ' + task.status + '\u2026');
+      if (task.status === 'success') return task;
+      if (task.status === 'failed') throw new Error(task.errorMessage || 'Task failed');
+    }
+    throw new Error('Timed out');
+  }
+  function music2RenderResults(task) {
+    var el = document.getElementById('music2Results');
+    var tracks = task.tracks || [];
+    el.innerHTML = '<div class="results-header"><span class="tick">\u2713</span> ' + tracks.length + ' Track' + (tracks.length !== 1 ? 's' : '') + ' Ready</div>';
+    tracks.forEach(function(track, i) {
+      var card = document.createElement('div');
+      card.className = 'track-card';
+      card.style.animationDelay = (i * 0.08) + 's';
+      var fname = (track.title || 'track').replace(/[\/\\:*?"<>|]/g, '_').trim() + '.mp3';
+      var html = '<div class="track-title">' + (track.title || 'Untitled') + '</div>';
+      html += '<div class="track-tags">' + (track.tags || '') + '</div>';
+      html += '<audio controls src="' + track.audioUrl + '"></audio>';
+      html += '<div class="track-duration">' + formatDuration(track.duration) + '</div>';
+      html += '<button class="download-btn" style="margin-top:12px">\u2b07 DOWNLOAD MP3</button>';
+      if (track.flacUrl) html += '<button class="download-btn" style="margin-top:8px;margin-left:8px">\u2b07 FLAC</button>';
+      card.innerHTML = html;
+      var btns = card.querySelectorAll('.download-btn');
+      btns[0].onclick = (function(u, f){ return function(){ downloadTrack(u,f); }; })(track.audioUrl, fname);
+      if (track.flacUrl && btns[1]) btns[1].onclick = (function(u,f){ return function(){ downloadTrack(u,f); }; })(track.flacUrl, fname.replace('.mp3','.flac'));
+      el.appendChild(card);
+      setTimeout((function(u,f){ return function(){ downloadTrack(u,f); }; })(track.audioUrl, fname), i * 1500);
+    });
+  }
+  function m2SetLoading(id, on, t1, t2) {
+    var b = document.getElementById(id); if(!b) return;
+    b.disabled = on; b.textContent = on ? t1 : t2;
+  }
+  async function music2Generate() {
+    hideError(); document.getElementById('music2Results').innerHTML = '';
+    var prompt = document.getElementById('m2prompt').value.trim();
+    var lyrics = document.getElementById('m2lyrics').value.trim();
+    if (!prompt && !lyrics) { showError('Provide at least one of: Prompt or Lyrics'); return; }
+    m2SetLoading('m2generateBtn', true, 'GENERATING\u2026', 'GENERATE'); setStatus('Generating\u2026');
+    try {
+      var body = {};
+      if (prompt) body.prompt = prompt;
+      if (lyrics) body.lyrics = lyrics;
+      var model = document.getElementById('m2model').value;
+      var style = document.getElementById('m2style').value.trim();
+      var title = document.getElementById('m2title').value.trim();
+      var vocalId = document.getElementById('m2vocalId').value.trim();
+      if (model) body.model = model;
+      if (style) body.style = style;
+      if (title) body.title = title;
+      if (vocalId) body.vocalId = vocalId;
+      if (document.getElementById('m2instrumental').checked) body.instrumental = true;
+      var result = await music2PostJson('/v1/music/generate', body);
+      setTaskId(result.taskId); setStatus('Generating\u2026');
+      var task = await music2Poll(result.taskId);
+      hideStatus(); music2RenderResults(task);
+    } catch(e) { hideStatus(); showError('Error: ' + e.message); }
+    finally { m2SetLoading('m2generateBtn', false, '', 'GENERATE'); }
+  }
+  async function music2Remix() {
+    hideError(); document.getElementById('music2Results').innerHTML = '';
+    var lyrics = document.getElementById('m2remixLyrics').value.trim();
+    var prompt = document.getElementById('m2remixPrompt').value.trim();
+    var file = music2Files.remix;
+    var url = document.getElementById('m2remixUrl').value.trim();
+    if (!lyrics) { showError('Lyrics required.'); return; }
+    if (!prompt) { showError('Prompt required.'); return; }
+    if (!file && !url) { showError('Provide audio file or URL.'); return; }
+    m2SetLoading('m2remixBtn', true, 'REMIXING\u2026', 'REMIX'); setStatus('Remixing\u2026');
+    try {
+      var form = new FormData();
+      form.append('lyrics', lyrics); form.append('prompt', prompt);
+      if (file) { form.append('audio', file, file.name); }
+      else if (url.startsWith('http')) { form.append('audioUrl', url); }
+      else { form.append('providerSongId', url); }
+      var result = await music2PostForm('/v1/music/remix', form);
+      setTaskId(result.taskId); setStatus('Generating\u2026');
+      var task = await music2Poll(result.taskId);
+      hideStatus(); music2RenderResults(task);
+    } catch(e) { hideStatus(); showError('Error: ' + e.message); }
+    finally { m2SetLoading('m2remixBtn', false, '', 'REMIX'); }
+  }
+  async function music2Instrumental() {
+    hideError(); document.getElementById('music2Results').innerHTML = '';
+    var prompt = document.getElementById('m2instrPrompt').value.trim();
+    var file = music2Files.instr;
+    if (!prompt && !file) { showError('Provide prompt OR audio file.'); return; }
+    if (prompt && file) { showError('Provide only ONE of: prompt or audio file.'); return; }
+    m2SetLoading('m2instrBtn', true, 'GENERATING\u2026', 'GENERATE INSTRUMENTAL'); setStatus('Generating\u2026');
+    try {
+      var model = document.getElementById('m2instrModel').value;
+      var result;
+      if (prompt) {
+        var body = {}; if (prompt) body.prompt = prompt; if (model) body.model = model;
+        result = await music2PostJson('/v1/music/instrumental', body);
+      } else {
+        var form = new FormData(); form.append('referenceAudio', file, file.name);
+        if (model) form.append('model', model);
+        result = await music2PostForm('/v1/music/instrumental', form);
+      }
+      setTaskId(result.taskId); setStatus('Generating\u2026');
+      var task = await music2Poll(result.taskId);
+      hideStatus(); music2RenderResults(task);
+    } catch(e) { hideStatus(); showError('Error: ' + e.message); }
+    finally { m2SetLoading('m2instrBtn', false, '', 'GENERATE INSTRUMENTAL'); }
+  }
+  async function music2Soundtrack() {
+    hideError(); document.getElementById('music2Results').innerHTML = '';
+    var file = music2Files.soundtrack;
+    if (!file) { showError('Please select an image or video file.'); return; }
+    m2SetLoading('m2soundtrackBtn', true, 'GENERATING\u2026', 'GENERATE SOUNDTRACK'); setStatus('Generating\u2026');
+    try {
+      var form = new FormData();
+      var isVideo = file.type.startsWith('video/') || /\.(mp4|mov|avi|mkv|webm)$/i.test(file.name);
+      if (isVideo) form.append('video', file, file.name); else form.append('image', file, file.name);
+      var prompt = document.getElementById('m2soundtrackPrompt').value.trim();
+      var model = document.getElementById('m2soundtrackModel').value;
+      if (prompt) form.append('prompt', prompt); if (model) form.append('model', model);
+      var result = await music2PostForm('/v1/music/soundtrack', form);
+      setTaskId(result.taskId); setStatus('Generating\u2026');
+      var task = await music2Poll(result.taskId);
+      hideStatus(); music2RenderResults(task);
+    } catch(e) { hideStatus(); showError('Error: ' + e.message); }
+    finally { m2SetLoading('m2soundtrackBtn', false, '', 'GENERATE SOUNDTRACK'); }
+  }
+  async function music2Track() {
+    hideError(); document.getElementById('music2Results').innerHTML = '';
+    var file = music2Files.track;
+    var songId = document.getElementById('m2trackSongId').value.trim();
+    var trackType = document.getElementById('m2trackType').value;
+    var prompt = document.getElementById('m2trackPrompt').value.trim();
+    var lyrics = document.getElementById('m2trackLyrics').value.trim();
+    if (!file && !songId) { showError('Provide audio file or providerSongId.'); return; }
+    if (!prompt) { showError('Prompt is required.'); return; }
+    if (trackType === 'Vocals' && !lyrics) { showError('Lyrics required for Vocals track type.'); return; }
+    m2SetLoading('m2trackBtn', true, 'GENERATING\u2026', 'GENERATE TRACK'); setStatus('Generating\u2026');
+    try {
+      var form = new FormData();
+      if (file) form.append('audio', file, file.name); else form.append('providerSongId', songId);
+      form.append('trackType', trackType);
+      form.append('prompt', prompt);
+      if (lyrics) form.append('lyrics', lyrics);
+      var vg = document.getElementById('m2trackVocalGender').value;
+      if (vg) form.append('vocalGender', vg);
+      var start = document.getElementById('m2trackStart').value;
+      var end = document.getElementById('m2trackEnd').value;
+      if (start !== '') form.append('generateStart', start);
+      if (end !== '') form.append('generateEnd', end);
+      var result = await music2PostForm('/v1/music/track', form);
+      setTaskId(result.taskId); setStatus('Generating\u2026');
+      var task = await music2Poll(result.taskId);
+      hideStatus(); music2RenderResults(task);
+    } catch(e) { hideStatus(); showError('Error: ' + e.message); }
+    finally { m2SetLoading('m2trackBtn', false, '', 'GENERATE TRACK'); }
+  }
+  async function music2Recognize() {
+    hideError(); var file = music2Files.tool;
+    if (!file) { showError('Please select an audio file.'); return; }
+    m2SetLoading('m2recognizeBtn', true, 'ANALYZING\u2026', 'RECOGNIZE'); setStatus('Recognizing\u2026');
+    try {
+      var form = new FormData(); form.append('audio', file, file.name);
+      var result = await music2PostForm('/v1/music/recognize', form);
+      hideStatus();
+      var el = document.getElementById('m2toolResults');
+      var sections = (result.lyricsSections) ? result.lyricsSections : [];
+      var html = '<div class="results-header"><span class="tick">\u2713</span> Lyrics Recognized</div><div class="track-card">';
+      if (result.duration) html += '<div style="font-size:12px;color:var(--muted);margin-bottom:8px">Duration: ' + formatDuration(result.duration/1000) + '</div>';
+      if (sections.length) {
+        sections.forEach(function(s) {
+          if (s.words) s.words.forEach(function(w) { html += '<span style="color:var(--text)">' + w.word + ' </span>'; });
+        });
+      } else { html += '<div style="color:var(--muted);font-size:12px">No lyrics found.</div>'; }
+      el.innerHTML = html + '</div>';
+    } catch(e) { hideStatus(); showError('Error: ' + e.message); }
+    finally { m2SetLoading('m2recognizeBtn', false, '', 'RECOGNIZE'); }
+  }
+  async function music2Describe() {
+    hideError(); var file = music2Files.tool;
+    if (!file) { showError('Please select an audio file.'); return; }
+    m2SetLoading('m2describeBtn', true, 'ANALYZING\u2026', 'DESCRIBE'); setStatus('Describing\u2026');
+    try {
+      var form = new FormData(); form.append('audio', file, file.name);
+      var result = await music2PostForm('/v1/music/describe', form);
+      hideStatus();
+      var r = result.result || result;
+      document.getElementById('m2toolResults').innerHTML =
+        '<div class="results-header"><span class="tick">\u2713</span> Audio Description</div>' +
+        '<div class="track-card">' +
+        '<div style="font-size:13px;margin-bottom:12px">' + (r.description || '\u2014') + '</div>' +
+        '<div style="font-size:11px;color:var(--muted);margin-bottom:4px">GENRES</div><div style="font-size:12px;margin-bottom:10px">' + ((r.genres||[]).join(', ') || '\u2014') + '</div>' +
+        '<div style="font-size:11px;color:var(--muted);margin-bottom:4px">TAGS</div><div style="font-size:12px;margin-bottom:10px">' + ((r.tags||[]).join(', ') || '\u2014') + '</div>' +
+        '<div style="font-size:11px;color:var(--muted);margin-bottom:4px">INSTRUMENTS</div><div style="font-size:12px">' + ((r.instruments||[]).join(', ') || '\u2014') + '</div>' +
+        '</div>';
+    } catch(e) { hideStatus(); showError('Error: ' + e.message); }
+    finally { m2SetLoading('m2describeBtn', false, '', 'DESCRIBE'); }
+  }
+  async function music2Stem() {
+    hideError(); var file = music2Files.tool;
+    if (!file) { showError('Please select an audio file.'); return; }
+    m2SetLoading('m2stemBtn', true, 'SEPARATING\u2026', 'STEM'); setStatus('Separating stems\u2026');
+    try {
+      var form = new FormData(); form.append('audio', file, file.name);
+      var model = document.getElementById('m2stemModel').value;
+      if (model) form.append('model', model);
+      var result = await music2PostForm('/v1/music/stem', form);
+      hideStatus();
+      var r = result.result || result;
+      var expires = r.expiresAt ? new Date(r.expiresAt * 1000).toLocaleString() : '~24h';
+      document.getElementById('m2toolResults').innerHTML =
+        '<div class="results-header"><span class="tick">\u2713</span> Stems Ready</div>' +
+        '<div class="track-card">' +
+        '<div style="font-size:12px;color:var(--muted);margin-bottom:12px">Expires: ' + expires + '</div>' +
+        (r.zipUrl ? '<a class="download-btn" href="' + r.zipUrl + '" target="_blank" style="display:inline-block;margin-bottom:8px">\u2b07 STEMS ZIP</a>' : '') +
+        (r.midiZipUrl ? '<a class="download-btn" href="' + r.midiZipUrl + '" target="_blank" style="display:inline-block;margin-left:8px">\u2b07 MIDI ZIP</a>' : '') +
+        '</div>';
+    } catch(e) { hideStatus(); showError('Error: ' + e.message); }
+    finally { m2SetLoading('m2stemBtn', false, '', 'STEM'); }
   }
 
   // --- Download ---
